@@ -72,12 +72,6 @@ pub async fn client_worker(client: Arc<Mutex<Client>>) {
             QuoteType::BIDS,
         );
 
-        // If no summary data from both connected exchanges, we have nothing
-        // to send ot the client.
-        if aggregate_asks.is_empty() && aggregate_bids.is_empty() {
-            continue;
-        }
-
         let mut spread = NAN;
         if aggregate_asks.len() > 0 && aggregate_bids.len() > 0 {
             spread = aggregate_bids[0].price - aggregate_asks[0].price;
