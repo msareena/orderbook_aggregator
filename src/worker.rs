@@ -25,22 +25,39 @@ pub async fn client_worker(client: Arc<Mutex<Client>>) {
 
     let num_top_orders = 10;
 
+    let mut last_bitstamp_summary: Option<Summary> = None;
+    let mut last_binance_summary: Option<Summary> = None;
+
     loop {
-        let bitstamp_summary = match bitstamp_exchange.stream() {
+        let mut bitstamp_summary = match bitstamp_exchange.stream() {
             Ok(summary) => summary,
             Err(e) => {
                 println!("Bitstamp Error: {}", e);
                 break;
             }
         };
+        // If there is no new summary from exchange, use the last summary.
+        if bitstamp_summary.is_none() {
+            bitstamp_summary = last_bitstamp_summary.clone();
+        }
+        else {
+            last_bitstamp_summary = bitstamp_summary.clone();
+        }
 
-        let binance_summary = match binance_exchange.stream() {
+        let mut binance_summary = match binance_exchange.stream() {
             Ok(summary) => summary,
             Err(e) => {
                 println!("Binance Error: {}", e);
                 break;
             }
         };
+        // If there is no new summary from exchange, use the last summary.
+        if binance_summary.is_none() {
+            binance_summary = last_binance_summary.clone();
+        }
+        else {
+            last_binance_summary = binance_summary.clone();
+        }
 
         let aggregate_asks = Aggregator::aggregate_top(
             num_top_orders,
